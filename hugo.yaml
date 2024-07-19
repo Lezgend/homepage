@@ -1,0 +1,96 @@
+baseURL: https://warayut.xyz
+languageCode: en-us
+title: Warayut's Homepage
+theme: ["PaperMod"]
+
+paginate: 5
+enableInlineShortcodes: true
+enableRobotsTXT: true
+enableEmoji: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+pygmentsUseClasses: true
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+params:
+  env: production
+  description: "Warayut's Homepage"
+  author: Warayut Poomiwatracanont
+
+  # home-info mode
+  # homeInfoParams:
+  #   Title: "Hi there \U0001F44B"
+  #   Content: Welcome to my blog
+
+  defaultTheme: auto
+  # disableThemeToggle: true
+  ShowReadingTime: true
+  ShowAllPagesInArchive: true
+  ShowRssButtonInSectionTermList: true
+  ShowPageNums: true
+  ShowWordCount: True
+  ShowToc: true
+  # disableSpecial1stPost: true
+  displayFullLangName: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  # comments: false
+  # images: ["images/papermod-cover.png"]
+
+  assets:
+    disableHLJS: true
+    favicon: "../assets/favicon/favicon-32x32.ico"
+    favicon16x16: "../assets/favicon/favicon-16x16.png"
+    favicon32x32: "../assets/favicon/favicon-32x32.png"
+    apple_touch_icon: "../assets/favicon/apple-touch-icon.png"
+    safari_pinned_tab: "../assets/favicon/logo.svg"
+
+  profileMode:
+    enabled: true
+    title: Warayut Poomiwatracanont
+    subtitle: "💻 System Engineer"
+    imageUrl: "../assets/icons/cat-the-box.svg"
+    imageTitle: Profile
+    imageWidth: 240
+    imageHeight: 240
+
+    buttons:
+      - name: Blog
+        url: posts
+
+  socialIcons:
+    - name: GitHub
+      title: View Source on Github
+      url: "https://github.com/Lezgend"
+    - name: Linkedin
+      title: Visit my Work Profile
+      url: "https://linkedin.com/in/warayut-poomiwatracanont/"
+    - name: KoFi
+      title: Buy me a Ko-Fi :)
+      url: "https://ko-fi.com/lezgend"
+
+menu:
+  main:
+    - name: Archive
+      url: archives
+      weight: 10
+    - name: Search
+      url: /search/
+      weight: 20
+    - name: Tags
+      url: tags
+      weight: 30
+    - name: xCard
+      url: https://xcard.pages.dev
+      weight: 40
