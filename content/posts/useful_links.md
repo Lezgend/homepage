@@ -32,6 +32,7 @@ draft: false
 - [Insomnia](https://github.com/Kong/insomnia)
 - [Mockbin](https://mockbin.io/)
 - [miniserve (Rust)](https://github.com/svenstaro/miniserve/tree/master)
+- [Mockae](https://mockae.com/)
 ---
 
 ## 💡 Learning
