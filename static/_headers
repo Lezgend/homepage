@@ -1,0 +1,32 @@
+# Cache-Control rules.
+#
+# Read by Cloudflare Pages and Netlify. GitHub Pages IGNORES this file — it
+# serves everything with a fixed 10-minute cache and cannot be configured,
+# so Lighthouse's "Use efficient cache lifetimes" audit is unfixable there.
+#
+# Zola fingerprints CSS, JS and the banner with ?h=<hash>, so a new hash is
+# requested the moment the file changes. That makes immutable caching safe.
+
+/*
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+# Not fingerprinted — rename the file if you ever need to bust these.
+/*.svg
+  Cache-Control: public, max-age=2592000
+
+/*.png
+  Cache-Control: public, max-age=2592000
+
+/favicon.ico
+  Cache-Control: public, max-age=2592000

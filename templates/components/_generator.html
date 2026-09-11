@@ -1,0 +1,8 @@
+{#- Overrides the theme's component of the same name to keep the
+    "Powered by Zola" credit but drop the "✎ Linkita" theme credit.
+    The theme's MIT LICENSE stays in themes/linkita/, which is what
+    the licence actually requires. -#}
+{% component _generator(_msg: map) %}
+  <a class="link lg:ml-6" href="https://www.getzola.org/" target="_blank">{{
+    <_str key=`footer_powered_by` _msg /> }}</a>
+{% endcomponent %}

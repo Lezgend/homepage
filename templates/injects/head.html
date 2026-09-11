@@ -1,0 +1,13 @@
+{#- Preload the home page banner.
+    This inject point sits before the theme's stylesheets, so the browser
+    starts fetching the banner immediately instead of discovering it only
+    after the CSS has loaded and <main> is parsed. Fixes Lighthouse's
+    "LCP request discovery", since the banner is the LCP element. -#}
+{%- if page.extra.banner?.image is string %}
+  {%- if paginator is undefined or paginator.current_index == 1 %}
+    {%- set _b = page.extra.banner.image | trim_start(pat=`/`) %}
+    {%- set _bm = get_image_metadata(path=_b, allow_missing=true) %}
+  <link rel="preload" as="image" fetchpriority="high" href="{{
+    <_link_static path={_b} ctx cachebust={_bm != null} /> }}" />
+  {%- endif %}
+{%- endif %}

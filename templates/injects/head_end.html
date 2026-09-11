@@ -1,0 +1,59 @@
+{#- Animated wallpaper.
+    Sits behind all content: the base colour stays on <html> (from the theme's
+    --bg variable) and <body> goes transparent, so a fixed pseudo-element at
+    z-index -1 can paint between them. Pure CSS, GPU-composited, and it honours
+    prefers-reduced-motion. Tune the --wp-* colours to taste. -#}
+<style>
+  :root {
+    --wp-1: rgba(56, 189, 248, 0.22);
+    --wp-2: rgba(167, 139, 250, 0.20);
+    --wp-3: rgba(45, 212, 191, 0.16);
+  }
+
+  :root.dark {
+    --wp-1: rgba(56, 189, 248, 0.14);
+    --wp-2: rgba(139, 92, 246, 0.17);
+    --wp-3: rgba(20, 184, 166, 0.11);
+  }
+
+  html {
+    background-color: var(--bg);
+  }
+
+  body {
+    background-color: transparent;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20vmax;
+    z-index: -1;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-image:
+      radial-gradient(38vmax 38vmax at 18% 20%, var(--wp-1), transparent 62%),
+      radial-gradient(32vmax 32vmax at 84% 16%, var(--wp-2), transparent 62%),
+      radial-gradient(42vmax 42vmax at 52% 92%, var(--wp-3), transparent 62%);
+    will-change: transform;
+    animation: wp-drift 32s ease-in-out infinite alternate;
+  }
+
+  @keyframes wp-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(2.5vmax, -2vmax, 0) scale(1.07);
+    }
+    100% {
+      transform: translate3d(-2vmax, 1.5vmax, 0) scale(1.03);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body::before {
+      animation: none;
+    }
+  }
+</style>

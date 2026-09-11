@@ -1,0 +1,113 @@
+# The URL the site will be built for
+base_url = "https://www.warayut.xyz"
+
+# The site theme to use.
+theme = "linkita"
+
+# The site title. Will be in all page titles.
+title = "Warayut's Homepage"
+
+# The site description. Used in feeds by default.
+description = "Warayut's Homepage"
+
+# The default language.
+# "en" is for English.
+default_language = "en"
+
+# The default author for pages.
+# See "extra.profiles".
+author = "Lezgend"
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
+
+# Automatically generate a feed.
+generate_feeds = true
+feed_filenames = ["rss.xml"]
+
+[markdown]
+# Render :emoji: shortcodes like :tada:
+render_emoji = true
+# Open external links in a new tab, safely
+external_links_target_blank = true
+external_links_no_follow = true
+external_links_no_referrer = true
+# Render GitHub-style alerts (> [!NOTE] ...)
+github_alerts = true
+
+[markdown.highlighting]
+# The theme to use for syntax highlighting
+theme = "catppuccin-mocha"
+
+[[taxonomies]]
+name = "tags"
+feed = true
+paginate_by = 5
+
+# ---------------------------------------------------------------------------
+# Theme options (linkita)
+# https://github.com/salif/linkita
+# ---------------------------------------------------------------------------
+
+[extra]
+# Separator between the page title and the site title.
+title_separator = " | "
+
+# The top menu, defined under [extra.menus].
+header_menu_name = "main"
+
+# Buttons shown in the site header.
+header_buttons = ["site_title", "theme_select", "search_button"]
+
+# Enable table of contents on all pages.
+toc = true
+
+# Information shown on post pages.
+page_info = [
+  { when = "date" },
+  { when = "date_updated", prepend = "(updated ", append = ")" },
+  { when = "reading_time" },
+  { when = "word_count" },
+]
+
+# Information shown for posts on the home/archive paginators.
+page_info_on_paginator = [{ when = "date" }, { when = "reading_time" }]
+
+[extra.taxonomy_sorting]
+# "ascending_frequency", "descending_frequency" or "name"
+tags = "descending_frequency"
+
+[extra.menus]
+main = [
+  { url = "@base/posts/", name = "Archive" },
+  { url = "@base/tags/", name = "Tags" },
+  { url = "https://xcard.pages.dev", name = "About" },
+]
+
+[extra.profiles.Lezgend]
+avatar_url = "icons/cat-the-box.svg"
+avatar_alt = "A cat peeking out of a cardboard box"
+name = "Warayut Poomiwatracanont"
+bio = "💻 Cloud DevOps Engineer"
+# The image used for social previews (Open Graph).
+og_image = "icons/logo.svg"
+og_image_alt = "Warayut's Homepage"
+social = [
+  { name = "github", url = "https://github.com/Lezgend", title = "View Source on Github" },
+  { name = "linkedin", url = "https://linkedin.com/in/warayut-poomiwatracanont/", title = "Visit my Work Profile" },
+  { name = "kofi", url = "https://ko-fi.com/lezgend", title = "Buy me a Ko-Fi :)" },
+  { name = "rss", url = "@base/rss.xml", title = "Subscribe to the feed" },
+]
+
+[extra.languages.en]
+date_format = "%Y %b %-d"
+
+[extra.languages.en.taxonomy_descriptions]
+tags = "A map of all tags on this site. Start exploring!"
+
+[extra.languages.en.term_descriptions]
+tags = "Browse articles related to $NAME. Start exploring!"
+
+[extra.footer]
+since = 2024
+copyright = "&copy;&nbsp;$YEAR Warayut Poomiwatracanont"

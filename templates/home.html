@@ -1,0 +1,76 @@
+{#- Home page: pinned posts first, then everything else in normal date order.
+    Pin a post with `pinned = true` under its `[extra]` front matter, and
+    order the pinned group with `pin_order = 1`, `2`, ... -#}
+{% extends "index.html" %}
+{% block main %}
+{#- Optional banner above the name. Set `[extra.banner] image = "..."`
+    in content/_index.md. Any image works: APNG, GIF, animated SVG, PNG. -#}
+{%- if page.extra.banner?.image is string %}
+  {%- if paginator is undefined or paginator.current_index == 1 %}
+  {#- CMS uploads arrive as "/uploads/x.png"; get_url wants no leading slash. -#}
+  {%- set _banner = page.extra.banner.image | trim_start(pat=`/`) %}
+  {#- Read the real pixel size off the file so any image reserves the right
+      space and never jumps on load. Front matter width/height override it. -#}
+  {%- set _bmeta = get_image_metadata(path=_banner, allow_missing=true) %}
+  {%- set _bw = page.extra.banner.width | default(value=_bmeta?.width) %}
+  {%- set _bh = page.extra.banner.height | default(value=_bmeta?.height) %}
+<figure class="not-prose mt-0 mb-12 lg:mb-16">
+  <img
+    class="h-auto w-full rounded-lg"
+    src="{{ <_link_static path={_banner} ctx cachebust={_bmeta != null} /> }}"
+    fetchpriority="high"
+    decoding="async"
+    {%- if page.extra.banner.alt is string %}
+    alt="{{ page.extra.banner.alt }}"{% endif %}
+    {%- if _bw is defined and _bh is defined %}
+    width="{{ _bw | int }}" height="{{ _bh | int }}"{% endif %} />
+</figure>
+  {%- endif %}
+{%- endif %}
+
+{#- Profile header, same behaviour as the theme's own index.html -#}
+{%- if _g_profile %}
+  {%- if paginator is undefined or paginator.current_index == 1 %}
+    {{ <_profile page ctx _g_profile /> }}
+  {%- endif %}
+{%- elif page.title is string %}
+<h1 class="mb-16">{{ page.title }}</h1>
+{%- endif %}
+
+{%- if page.content %}
+<section>{{ page.content | safe }}</section>
+{%- endif %}
+
+{#- Pinned posts are taken from the whole section, not from the current
+    paginator slice, so they always stay on page 1. -#}
+{%- set_global pinned = [] %}
+{%- if paginator is undefined or paginator.current_index == 1 %}
+  {%- for _p in page.pages %}
+    {%- if _p.extra.pinned %}
+      {%- set_global pinned = [...pinned, _p] %}
+    {%- endif %}
+  {%- endfor %}
+{%- endif %}
+
+{#- Everything else keeps the section's normal order and pagination. -#}
+{%- set_global rest = [] %}
+{%- for _p in paginator?.pages | default(value=page.pages) %}
+  {%- if not _p.extra.pinned %}
+    {%- set_global rest = [...rest, _p] %}
+  {%- endif %}
+{%- endfor %}
+
+{%- if pinned | length > 0 %}
+<h2>Pinned <sup class="opacity-60">{{ <_num value={(pinned | length)} ctx /> }}</sup></h2>
+{{ <_list_pages config ctx _msg pages={pinned | sort(attribute=`extra.pin_order`)} /> }}
+{%- endif %}
+
+{%- if rest | length > 0 %}
+  {%- if pinned | length > 0 %}
+<h2>Posts</h2>
+  {%- endif %}
+{{ <_list_pages config ctx _msg pages={rest} /> }}
+{%- endif %}
+
+{{ <_list_nav ctx _msg paginator taxonomy /> }}
+{% endblock main %}

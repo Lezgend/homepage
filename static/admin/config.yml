@@ -1,0 +1,256 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+# Sveltia CMS configuration
+# Docs: https://sveltiacms.app/en/docs/frameworks/zola
+#
+# Local editing needs no backend setup at all: run `zola serve`, open
+# http://127.0.0.1:1111/admin/ in a Chromium browser (Chrome / Edge / Brave),
+# click "Work with Local Repository" and pick this project folder.
+#
+# For editing from the hosted site you must finish the two TODOs below.
+
+backend:
+  name: github
+  # TODO: set this to your GitHub repo once you push it, as "owner/repo".
+  repo: Lezgend/homepage
+  branch: main
+  # TODO: GitHub OAuth needs an auth service. Deploy sveltia-cms-auth
+  # (a free Cloudflare Worker) and put its URL here:
+  # https://github.com/sveltia/sveltia-cms-auth
+  # base_url: https://sveltia-cms-auth.YOUR-SUBDOMAIN.workers.dev
+
+# Zola serves everything in `static/` from the site root.
+media_folder: static/uploads
+public_folder: /uploads
+
+site_url: https://www.warayut.xyz
+
+slug:
+  encoding: ascii
+  clean_accents: true
+
+output:
+  # Important for Zola: never write empty values like `updated = ""`,
+  # which would fail to parse as a date at build time.
+  omit_empty_optional_fields: true
+
+collections:
+  - name: posts
+    label: Posts
+    label_singular: Post
+    description: Blog posts, shown on the home page and the archive.
+    folder: content/posts
+    # Page-bundle layout: content/posts/<slug>/index.md
+    # This also keeps the CMS away from content/posts/_index.md,
+    # which is the Zola section config and must not be edited here.
+    path: "{{slug}}/index"
+    extension: md
+    format: toml-frontmatter
+    create: true
+    delete: true
+    # Images are uploaded next to the post they belong to.
+    media_folder: ""
+    public_folder: ""
+    preview_path: posts/{{slug}}
+    summary: "{{title}}"
+    sortable_fields: [date, title]
+    view_groups:
+      - label: Year
+        field: date
+        pattern: \d{4}
+    fields:
+      - name: title
+        label: Title
+        widget: string
+
+      - name: description
+        label: Description
+        widget: text
+        required: false
+        hint: Used for SEO and for the card on the home page.
+
+      - name: date
+        label: Publish date
+        widget: datetime
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
+        picker_utc: false
+        default: "{{now}}"
+
+      - name: updated
+        label: Last updated
+        widget: datetime
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
+        picker_utc: false
+        required: false
+
+      - name: draft
+        label: Draft
+        widget: boolean
+        required: false
+        default: false
+        hint: Drafts are skipped by `zola build`.
+
+      - name: taxonomies
+        label: Taxonomies
+        widget: object
+        required: false
+        collapsed: false
+        fields:
+          - name: tags
+            label: Tags
+            widget: list
+            required: false
+            default: []
+
+      - name: extra
+        label: Extra options
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - name: pinned
+            label: Pin to home page
+            widget: boolean
+            required: false
+            default: false
+            hint: Pinned posts sit at the top of the home page, above the rest.
+          - name: pin_order
+            label: Pin order
+            widget: number
+            value_type: int
+            required: false
+            min: 1
+            hint: Order within the pinned group, lowest first. Only used when pinned.
+          - name: cover
+            label: Cover image
+            widget: object
+            required: false
+            collapsed: true
+            fields:
+              - name: image
+                label: Image
+                widget: image
+                required: false
+                choose_url: false
+              - name: alt
+                label: Alt text
+                widget: string
+                required: false
+          - name: comment
+            label: Enable comments
+            widget: boolean
+            required: false
+            default: false
+          - name: math
+            label: Enable KaTeX math
+            widget: boolean
+            required: false
+            default: false
+          - name: mermaid
+            label: Enable Mermaid diagrams
+            widget: boolean
+            required: false
+            default: false
+
+      - name: body
+        label: Body
+        widget: markdown
+
+  - name: pages
+    label: Pages
+    description: The home page and the archive section.
+    files:
+      - name: home
+        label: Home page
+        file: content/_index.md
+        format: toml-frontmatter
+        preview_path: ""
+        fields:
+          - { name: title, label: Title, widget: string }
+          - {
+              name: description,
+              label: Description,
+              widget: text,
+              required: false,
+            }
+          - name: sort_by
+            label: Sort posts by
+            widget: select
+            options: [date, title, weight, none]
+            default: date
+          - name: paginate_by
+            label: Posts per page
+            widget: number
+            value_type: int
+            min: 1
+            default: 5
+          - name: extra
+            label: Extra options
+            widget: object
+            fields:
+              - name: profile
+                label: Profile username
+                widget: string
+                hint: Must match an [extra.profiles.<name>] key in zola.toml.
+              - name: banner
+                label: Banner image
+                widget: object
+                required: false
+                collapsed: true
+                hint: Shown above your name. APNG, GIF, animated SVG or PNG.
+                fields:
+                  - name: image
+                    label: Image
+                    widget: image
+                    required: false
+                    choose_url: false
+                  - name: alt
+                    label: Alt text
+                    widget: string
+                    required: false
+          - { name: body, label: Body, widget: markdown, required: false }
+
+      - name: archive
+        label: Archive page
+        file: content/posts/_index.md
+        format: toml-frontmatter
+        preview_path: posts
+        fields:
+          - { name: title, label: Title, widget: string }
+          - {
+              name: description,
+              label: Description,
+              widget: text,
+              required: false,
+            }
+          - name: sort_by
+            label: Sort posts by
+            widget: select
+            options: [date, title, weight, none]
+            default: date
+          - {
+              name: template,
+              label: Template,
+              widget: hidden,
+              default: archive.html,
+            }
+          - {
+              name: transparent,
+              label: Transparent,
+              widget: hidden,
+              default: true,
+            }
+          - name: extra
+            label: Extra options
+            widget: object
+            required: false
+            fields:
+              - name: date_format
+                label: Date format
+                widget: string
+                required: false
+                default: "%b %-d"
+          - { name: body, label: Body, widget: markdown, required: false }
