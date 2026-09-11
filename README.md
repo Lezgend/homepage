@@ -1,15 +1,18 @@
-# Warayut's Homepage (Zola)
+# Warayut's Homepage
 
 Personal homepage and blog, built with [Zola](https://www.getzola.org/) and the
 [Linkita](https://github.com/salif/linkita) theme, edited with
-[Sveltia CMS](https://sveltiacms.app/).
+[Sveltia CMS](https://sveltiacms.app/) and deployed to GitHub Pages.
 
-Content ported from the previous Hugo + PaperMod site
-([Lezgend/homepage](https://github.com/Lezgend/homepage)).
+Live at <https://www.warayut.xyz>.
+
+This repo previously ran Hugo + PaperMod; the Zola rewrite landed in the
+`Migrate to Zola` commit, so the old site is still in this repo's git history.
 
 ## Requirements
 
-- Zola `>= 0.23.4` (Linkita's `min_version`; this site was built with 0.23.4)
+- Zola `0.23.4` or newer — that is Linkita's `min_version`, and the version CI
+  installs (`ZOLA_VERSION` in the deploy workflow).
 
 ## Local development
 
@@ -20,36 +23,45 @@ zola serve
 Then open <http://127.0.0.1:1111>.
 
 ```bash
-zola build           # writes to public/
+zola build           # writes to public/ (gitignored)
 zola check           # validates internal + external links
 ```
 
 ## Layout
 
 ```
-zola.toml                     site + theme configuration
+zola.toml                       site + theme configuration
 content/
-  _index.md                   home page (profile mode)
+  _index.md                     home page (profile mode, banner)
   posts/
-    _index.md                 archive page (template = archive.html)
-    <slug>/index.md           a post, as a page bundle
+    _index.md                   archive page (template = archive.html)
+    <slug>/index.md             a post, as a page bundle
 static/
-  admin/index.html            Sveltia CMS entry point
-  admin/config.yml            Sveltia CMS configuration
-  banner.webp                 animated home page banner (lossless WebP)
-  _headers                    cache rules (Cloudflare/Netlify only)
-  icons/                      profile avatar + social icons
-  uploads/                    CMS media uploads
+  admin/index.html              Sveltia CMS entry point
+  admin/config.yml              Sveltia CMS configuration
+  banner.webp                   animated home page banner (lossless WebP)
+  _headers                      cache rules (Cloudflare/Netlify only)
+  icons/cat-the-box.svg         profile avatar
+  icons/logo.svg                Open Graph preview image
+  favicon.ico                   favicons
+  android-icon.png
+  apple-touch-icon.png
+  uploads/                      CMS media uploads
 templates/
-  home.html                   home page override: banner + pinned posts
-  robots.txt                  overrides Zola's default; disallows /admin/
-  components/_generator.html  overrides the theme's footer credit (empty)
-  injects/head_end.html       animated wallpaper CSS
-themes/linkita/               theme, as a git submodule
+  home.html                     home page override: banner + pinned posts
+  robots.txt                    overrides Zola's default; disallows /admin/
+  components/_generator.html    overrides the theme's footer credit
+  injects/head.html             preloads the banner (before the theme's CSS)
+  injects/head_end.html         animated wallpaper CSS
+themes/linkita/                 the theme, vendored in-tree
+.github/workflows/zola_build.yaml   build + deploy to GitHub Pages
 ```
 
 Posts are **page bundles** (`content/posts/my-post/index.md`) so images can sit
 next to the post they belong to and be referenced by bare filename.
+
+Every file under `templates/` is an override or an inject point, never a fork of
+a theme file, so `themes/linkita/` stays a clean, replaceable copy.
 
 ## Writing a post
 
@@ -87,7 +99,7 @@ All front matter keys are optional except what you want rendered. See the
 Linkita has no pinning of its own, so the home page uses
 [`templates/home.html`](templates/home.html) (set via `template = "home.html"` in
 `content/_index.md`). It extends the theme's `index.html` and overrides only the
-`main` block, so the theme stays a clean, updatable submodule.
+`main` block.
 
 Pin a post in its front matter:
 
@@ -100,11 +112,48 @@ pin_order = 1
 Pinned posts render in a **Pinned** group at the top of the home page, ordered by
 `pin_order` ascending, and are left out of the list below so they never appear
 twice. Everything else keeps normal date order. Both fields are editable from the
-CMS under *Extra options*.
+CMS under _Extra options_.
 
 Currently pinned: `useful-links` (1), `free-illustrations` (2), `more` (3).
 
 The Archive page at `/posts/` is unaffected and always lists every post by year.
+
+## Banner image
+
+The home page shows a banner above the profile name, rendered by
+[`templates/home.html`](templates/home.html) and configured in
+`content/_index.md`:
+
+```toml
+[extra.banner]
+image = "banner.webp"
+alt = "Pixel art night street scene with a lit convenience store and cherry blossom trees"
+```
+
+That is the whole configuration. Any image format works — **WebP, APNG, GIF,
+animated SVG or a plain PNG**. Delete the `[extra.banner]` block and the banner
+disappears; nothing else changes.
+
+Details that make it drop-in:
+
+- `image` resolves relative to `static/`, and a leading slash is tolerated, so
+  both `banner.webp` and a CMS upload at `/uploads/my-banner.png` work.
+- The image's real pixel size is read off the file with `get_image_metadata`, so
+  `width`/`height` are emitted automatically and the page never jumps on load.
+  You do **not** need to state them. Front matter `width`/`height` still
+  override if you ever want to.
+- A missing file does not break the build — the banner just renders without
+  dimensions.
+- The banner is contained to the content column and only shows on paginator
+  page 1.
+
+Editable from the CMS under _Pages → Home page → Extra options → Banner image_.
+
+To use your own image, drop it in `static/` and change one line:
+
+```toml
+image = "my-banner.png"
+```
 
 ## Animated wallpaper
 
@@ -140,54 +189,47 @@ Linkita is MIT licensed, which requires the copyright notice to travel with the
 source — that is `themes/linkita/LICENSE`, still present — not a credit in the
 rendered page.
 
-## Banner image
+## Deployment
 
-The home page shows a banner above the profile name, rendered by
-[`templates/home.html`](templates/home.html) and configured in
-`content/_index.md`:
+[`.github/workflows/zola_build.yaml`](.github/workflows/zola_build.yaml) builds
+and publishes to GitHub Pages on every push to `main`, and can also be run
+manually from the Actions tab.
 
-```toml
-[extra.banner]
-image = "banner.svg"
-alt = "Animated dusk skyline"
+```
+push to main
+  -> install Zola (ZOLA_VERSION, currently 0.23.4)
+  -> zola build --base-url <the URL configure-pages reports>
+  -> upload-pages-artifact packages ./public
+  -> deploy-pages publishes it
 ```
 
-That is the whole configuration. Any image format works — **APNG, GIF, animated
-SVG or a plain PNG**. Delete the `[extra.banner]` block and the banner
-disappears; nothing else changes.
+Two things worth knowing:
 
-Details that make it drop-in:
+- The build passes `--base-url`, so the `base_url` in `zola.toml` is overridden
+  at deploy time by whatever the repo's Pages settings resolve to (the custom
+  domain, when one is configured).
+- `TZ: Asia/Bangkok` is set for the build step so post dates render in local
+  time rather than UTC.
 
-- `image` resolves relative to `static/`, and a leading slash is tolerated, so
-  both `banner.svg` and a CMS upload at `/uploads/my-banner.png` work.
-- The image's real pixel size is read off the file with `get_image_metadata`, so
-  `width`/`height` are emitted automatically and the page never jumps on load.
-  You do **not** need to state them. Front matter `width`/`height` still
-  override if you ever want to.
-- A missing file does not break the build — the banner just renders without
-  dimensions.
-- The banner is contained to the content column and only shows on paginator
-  page 1.
+`static/` is not uploaded on its own — Zola copies it into `public/`, and
+`public/` is the artifact. So posts and static files arrive the same way.
 
-Editable from the CMS under *Pages → Home page → Extra options → Banner image*.
+## Theme
 
-### Swapping in your own art
+`themes/linkita/` is **vendored**: the theme's files are committed directly into
+this repo, not pulled in as a live git submodule. `git submodule status` returns
+nothing here, and `git submodule update --remote themes/linkita` does nothing.
 
-`static/banner.svg` is a placeholder: an animated dusk skyline done as an
-animated SVG, so it needs no image tooling and honours `prefers-reduced-motion`.
-It is flat vector shapes, not real pixel art.
+> [!NOTE]
+> `.gitmodules` still declares `themes/linkita` as a submodule. It is a leftover
+> and has no effect. Either delete it, or convert the directory into a real
+> submodule, if you want the two to agree.
 
-To use your own image, drop it in `static/` and change one line:
-
-```toml
-image = "my-banner.png"
-```
-
-Sizing is automatic, so that is the only edit needed.
-
-## Performance
-
-Lighthouse findings and what was done about each.
+To update the theme, replace the directory with a newer copy of
+[salif/linkita](https://github.com/salif/linkita) and check its
+[CHANGELOG](https://github.com/salif/linkita/blob/main/CHANGELOG.md) for
+breaking changes — especially the `min_version` in its `theme.toml`, which must
+stay `<=` the Zola version pinned in the workflow.
 
 ### Fixed: image delivery — 513 KB to 111 KB
 
@@ -195,7 +237,7 @@ The banner was a 513 KB animated GIF, larger than everything else on the page
 combined. It is now `static/banner.webp`, a **lossless** animated WebP at
 111 KB — a 78% cut with pixel-identical output.
 
-Lossy WebP is the wrong tool here and made things *worse*: at quality 80 the same
+Lossy WebP is the wrong tool here and made things _worse_: at quality 80 the same
 image encoded to 1014 KB, and at 70 to 865 KB. Pixel art has hard edges and a
 small palette, which GIF's LZW handles well and lossy DCT handles badly. WebP
 **lossless** beats GIF on the same content because of better entropy coding.
@@ -207,83 +249,16 @@ npm install sharp
 node -e "require('sharp')('in.gif',{animated:true}).webp({lossless:true,effort:4}).toFile('static/banner.webp')"
 ```
 
-The original GIF is kept at `assets-src/banner.gif`. That directory is outside
-`static/`, so it stays in the repo but is never deployed. It is 516 KB and
-serves no purpose except re-encoding, so it is safe to delete — the source is:
-
-    https://i.pinimg.com/originals/19/6a/d9/196ad9d3122098b297d7b99ce9ff209f.gif
-
-### Fixed: LCP request discovery
-
-The banner is the LCP element, but it lives in `<main>`, so the browser only
-found it after the CSS had loaded. [`templates/injects/head.html`](templates/injects/head.html)
-now preloads it — that inject point sits *before* the theme's stylesheets — and
-the `<img>` carries `fetchpriority="high"`.
-
-The preload and the `<img>` must resolve to a byte-identical URL or the file is
-fetched twice; both go through the same `?h=<hash>` cachebust, so they match.
+The original GIF is no longer kept in the repo.
 
 ### Partly fixable: cache lifetimes
 
-`static/_headers` sets long immutable caching for the fingerprinted assets, and
-is read by **Cloudflare Pages and Netlify**.
-
-**GitHub Pages ignores it.** Pages serves a fixed 10-minute cache and exposes no
-configuration, so this audit cannot be fixed there — it is a hosting limit, not
-a site problem. Moving to Cloudflare Pages would resolve it.
-
-### Not worth fixing: render-blocking requests
-
-This is the theme's own `main.min.css`, a 44 KB Tailwind bundle. The other two
-sheets (`icons.css`, `admonition.css`) are about 1 KB each, so dropping them
-would save one multiplexed HTTP/2 request and nothing measurable — while
-forking the theme's `_stylesheets.html` means silently missing any stylesheet
-the theme adds later. Bad trade.
-
-Also note the 240 ms figure is inflated if you measured against `zola serve`,
-which sends no compression. Both GitHub Pages and Cloudflare Pages serve
-gzip/brotli, taking that 44 KB to roughly 10 KB on the wire. Re-measure on the
-deployed site before spending anything more here.
-
-## How a CMS edit reaches the live site
-
-Verified end to end by simulating exactly what Sveltia commits — a page bundle
-with TOML front matter, the date as a **quoted string** (what the datetime
-widget writes), and an uploaded image beside the post:
-
-```
-Sveltia saves
-  -> commit to main:  content/posts/<slug>/index.md  +  content/posts/<slug>/shot.png
-  -> push triggers .github/workflows/zola_build.yaml
-  -> zola build     reads content/ and static/, writes ./public
-  -> upload-pages-artifact packages ./public
-  -> deploy-pages   publishes it
-```
-
-`static/` is not uploaded on its own — Zola copies it into `public/`, and
-`public/` is the artifact. So both your posts and your static files arrive the
-same way.
-
-Confirmed a simulated post landed in every output: its own page, the uploaded
-image at `/posts/<slug>/shot.png`, the home page, the archive, its tag page,
-`rss.xml`, `sitemap.xml` and the search index. Setting **Draft** in the CMS
-correctly excluded it from all of them.
-
-One thing worth knowing: Zola accepts `date = "2026-09-11"` as a quoted string,
-which is the format the CMS writes. If it did not, every CMS-created post would
-break the build — so this is the single most important compatibility point
-between Sveltia and Zola, and it works.
-
-## Sass
-
-Not used, and removed. The Linkita theme ships prebuilt CSS as static files
-(`main.min.css`) and sets `compile_sass = false` in its own config; there are
-zero `.scss` files in the theme. The empty `sass/` directory and
-`compile_sass = true` have been deleted — verified by diffing the whole `public/`
-tree before and after, which came out byte-identical.
-
-If you ever want your own Sass, recreate `sass/` and set `compile_sass = true`
-again.
+[`static/_headers`](static/_headers) sets long immutable caching for the
+fingerprinted assets, and is read by **Cloudflare Pages and Netlify**.
+**GitHub Pages ignores it**, which is where this site is deployed today — it
+serves a fixed 10-minute cache and exposes no configuration, so this audit is a
+hosting limit rather than a site problem. Moving to Cloudflare Pages would
+resolve it, and `_headers` is already in place for that.
 
 ## Sveltia CMS
 
@@ -299,27 +274,13 @@ Zola TOML front matter (`format: toml-frontmatter`).
 
 Saves are written straight to your working tree.
 
-### Editing from the live site — two TODOs
-
-Both live in `static/admin/config.yml`:
-
-1. **`backend.repo`** — currently `Lezgend/myblog`. Set it to the real
-   `owner/repo` once this project is pushed to GitHub.
-2. **`backend.base_url`** — GitHub OAuth needs an auth relay. Deploy
-   [sveltia-cms-auth](https://github.com/sveltia/sveltia-cms-auth) (a free
-   Cloudflare Worker), then uncomment `base_url` and point it at your worker.
-
-Until step 2 is done, **Sign In with GitHub** on the hosted `/admin/` page will
-not complete. **Sign In Using Access Token** works without a worker if you paste
-a GitHub personal access token with `repo` scope.
-
 ### What the CMS can edit
 
-| Collection | Target |
-| ---------- | ------ |
-| Posts | `content/posts/<slug>/index.md` — create, edit, delete |
-| Pages → Home page | `content/_index.md` |
-| Pages → Archive page | `content/posts/_index.md` |
+| Collection           | Target                                                 |
+| -------------------- | ------------------------------------------------------ |
+| Posts                | `content/posts/<slug>/index.md` — create, edit, delete |
+| Pages → Home page    | `content/_index.md`                                    |
+| Pages → Archive page | `content/posts/_index.md`                              |
 
 Uploads for a post go into that post's own folder. Site-wide media goes to
 `static/uploads/` and is served from `/uploads/`.
@@ -327,12 +288,7 @@ Uploads for a post go into that post's own folder. Site-wide media goes to
 Theme settings (menu, profile, social links, footer) live in `zola.toml` and are
 intentionally **not** exposed to the CMS — Sveltia cannot edit a Zola config file.
 
-## Notes
+## Licence
 
-- `zola check` reports a few external links from the original content as broken.
-  Most are sites that reject automated requests (403) rather than genuinely dead
-  links; `zola build` is unaffected.
-- The theme is a submodule. Update it with:
-  `git submodule update --remote themes/linkita`
-  and check its [CHANGELOG](https://github.com/salif/linkita/blob/main/CHANGELOG.md)
-  for breaking changes.
+[MIT](LICENSE) © Warayut Poomiwatracanont. The bundled theme keeps its own
+licence at `themes/linkita/LICENSE`.
